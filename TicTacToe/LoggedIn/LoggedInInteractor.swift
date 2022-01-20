@@ -9,6 +9,11 @@
 import RIBs
 import RxSwift
 
+enum PlayerType: Int {
+    case player1 = 1
+    case player2
+}
+
 protocol LoggedInRouting: Routing {
     // TODO: Declare methods the interactor can invoke to manage sub-tree via the router.
     func routeToTicTacToe()
@@ -21,13 +26,17 @@ protocol LoggedInListener: AnyObject {
 }
 
 final class LoggedInInteractor: Interactor, LoggedInInteractable {
-
+    
     weak var router: LoggedInRouting?
     weak var listener: LoggedInListener?
 
     // TODO: Add additional dependencies to constructor. Do not perform any logic
     // in constructor.
-    override init() {}
+    private let mutableScoreStream: MutableScoreStream
+
+    init(mutableScoreStream: MutableScoreStream) {
+        self.mutableScoreStream = mutableScoreStream
+    }
 
     override func didBecomeActive() {
         super.didBecomeActive()
@@ -41,8 +50,14 @@ final class LoggedInInteractor: Interactor, LoggedInInteractable {
         // TODO: Pause any business logic.
     }
     
-    func gameDidEnd() {
-        router?.routeToOffGame()
+    func startTicTacToe() {
+        router?.routeToTicTacToe()
     }
     
+    func gameDidEnd(withWinner winner: PlayerType?) {
+        if let winner = winner {
+            mutableScoreStream.updateScore(withWinner: winner)
+        }
+        router?.routeToOffGame()
+    }
 }

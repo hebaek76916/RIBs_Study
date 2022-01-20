@@ -15,7 +15,7 @@ protocol LoggedInDependency: Dependency {
     // created by this RIB.
 }
 
-final class LoggedInComponent: Component<LoggedInDependency>, OffGameDependency {
+final class LoggedInComponent: Component<LoggedInDependency> { // OffGameDependency
 
     // TODO: Make sure to convert the variable into lower-camelcase.
     fileprivate var loggedInViewController: LoggedInViewControllable {
@@ -23,10 +23,13 @@ final class LoggedInComponent: Component<LoggedInDependency>, OffGameDependency 
     }
 
     // TODO: Declare 'fileprivate' dependencies that are only used by this RIB.
-    
     let player1Name: String
     let player2Name: String
 
+    var mutableScoreStream: MutableScoreStream {
+        return shared { ScoreStreamImpl() }
+    }
+    
     init(dependency: LoggedInDependency,
          player1Name: String,
          player2Name: String) {
@@ -55,12 +58,16 @@ final class LoggedInBuilder: Builder<LoggedInDependency>, LoggedInBuildable {
         let component = LoggedInComponent(dependency: dependency,
                                           player1Name: player1Name,
                                           player2Name: player2Name)
-        let interactor = LoggedInInteractor()
+        let interactor = LoggedInInteractor(mutableScoreStream: component.mutableScoreStream)
         interactor.listener = listener
 
         let offGameBuilder = OffGameBuilder(dependency: component)
+        let ticTacToeBuilder = TicTacToeBuilder(dependency: component)
         return LoggedInRouter(interactor: interactor,
                               viewController: component.loggedInViewController,
-                              offGameBuilder: offGameBuilder)
+                              offGameBuilder: offGameBuilder,
+                              ticTacToeBuilder: ticTacToeBuilder)
     }
+    
+
 }
